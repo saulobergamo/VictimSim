@@ -31,10 +31,11 @@ class Explorer(AbstractAgent):
         self.walls = []
         self.visited = [self.currentPos]
         self.layer = 0
+        self.ttl = 15 * self.TLIM / 100 
     
     # Calculates the euclidian distance between two points and returns True if the distance is greater than 15
     def euclidianDistance(self, pos1, pos2):
-        if (((pos1[0]-pos2[0])**2 + (pos1[1]-pos2[1])**2)**0.5) > 15:
+        if (((pos1[0]-pos2[0])**2 + (pos1[1]-pos2[1])**2)**0.5) > self.ttl:
             return True
 
     # This method is called to return the best move for the explorer
@@ -68,6 +69,7 @@ class Explorer(AbstractAgent):
         
         while self.currentPos != (0,0):
             distances = []
+            lastMove = (0,0)
             for move in self.directions:
                 newPos = tuple(map(lambda i, j: i + j, self.currentPos, move))
                 if newPos in self.walls:
@@ -78,7 +80,9 @@ class Explorer(AbstractAgent):
             # Find the move with the shortest distance to the base
             minDist = min(distances)
             bestMove = self.directions[distances.index(minDist)]
-        
+            if(bestMove == -1*lastMove):
+                bestMove = random.choice(self.directions)
+
             # Move the agent
             result = self.body.walk(bestMove[0], bestMove[1])
             print(self.currentPos, bestMove, result)
@@ -105,18 +109,20 @@ class Explorer(AbstractAgent):
                     self.rtime -= self.COST_READ
                     # print("exp: read vital signals of " + str(seq))
                     # print(vs)
-
+            lastMove = bestMove
     
     def deliberate(self) -> bool:
         """ The agent chooses the next action. The simulator calls this
         method at each cycle. Must be implemented in every agent"""
 
         # No more actions, time almost ended
-        if self.euclidianDistance(self.currentPos, (0,0)) or self.rtime < 15.0: 
+        if self.euclidianDistance(self.currentPos, (0,0)) or self.rtime < self.ttl: 
             # time to wake up the rescuer
             # pass the walls and the victims (here, they're empty)
             print(f"{self.NAME} I believe I've remaining time of {self.rtime:.1f}")
-
+            print("Max time to come back to base:" + str(self.ttl))
+            print("Distance to the base:" + str(math.sqrt(self.currentPos[0]**2 + self.currentPos[1]**2)))
+            print("Remaining time:" + str(self.rtime))
             # print("Current position="+str(self.currentPos))
             self.returnToBase()
             # print("Final position="+str(self.currentPos))
