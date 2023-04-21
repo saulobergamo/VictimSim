@@ -30,10 +30,10 @@ class Explorer(AbstractAgent):
         self.victims = []
         self.walls = []
         self.visited = [self.currentPos]
-        self.layer = 0
+        self.path = [self.currentPos]
         self.ttl = 15 * self.TLIM / 100 
     
-    # Calculates the euclidian distance between two points and returns True if the distance is greater than 15
+    # Calculates the euclidian distance between two points and returns True if the distance is greater than 15% of the totalTimeLimit
     def euclidianDistance(self, pos1, pos2):
         if (((pos1[0]-pos2[0])**2 + (pos1[1]-pos2[1])**2)**0.5) > self.ttl:
             return True
@@ -44,13 +44,13 @@ class Explorer(AbstractAgent):
         # Starting the spiral search from the agent's current position
         while True:
             nodes_to_explore = []
-            for i in range(-self.layer, self.layer+1):
-                for j in range(-self.layer, self.layer+1):
-                    if abs(i) == self.layer or abs(j) == self.layer:
-                        node = (currentPos[0]+i, currentPos[1]+j)
-                        if node not in self.visited and node not in self.walls:
-                            nodes_to_explore.append(node)
-            
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    if(i==0 and j==0):
+                        continue
+                    if(currentPos[0]+i, currentPos[1]+j) not in self.visited and (currentPos[0]+i, currentPos[1]+j) not in self.walls:
+                        nodes_to_explore.append((currentPos[0]+i, currentPos[1]+j))
+
             # Exploring the nodes in the order defined by the movement options
             random.shuffle(self.directions)
             for direction in self.directions:
@@ -58,11 +58,13 @@ class Explorer(AbstractAgent):
                 if new_pos in nodes_to_explore:
                     return direction
             
-            # If none of the neighboring nodes can be explored, choose a random direction to break out of the deadlock
+            # If none of the neighboring nodes can be explored backtrack to the previous node using the path list
             if not nodes_to_explore:
-                return random.choice(self.directions)
-            
-            self.layer += 1
+                # Remove currentPos from self.path 
+                self.path.remove(self.path[-1])
+                # Return the direction in self.directions to the achieve last node of self.path
+                direction = (self.path[-1][0] - currentPos[0], self.path[-1][1] - currentPos[1])
+                return direction
 
     # Based on the A* algorithm, uses the Euclidean distance from the current position to the desired position (0,0)
     def returnToBase(self):
@@ -110,7 +112,12 @@ class Explorer(AbstractAgent):
                     # print("exp: read vital signals of " + str(seq))
                     # print(vs)
             lastMove = bestMove
-    
+
+    def end(self):
+        print(f"{self.NAME} I'm done and I've remaining time of {self.rtime:.1f}")
+        self.resc.go_save_victims(self.walls,self.victims)
+        
+
     def deliberate(self) -> bool:
         """ The agent chooses the next action. The simulator calls this
         method at each cycle. Must be implemented in every agent"""
@@ -123,10 +130,8 @@ class Explorer(AbstractAgent):
             print("Max time to come back to base:" + str(self.ttl))
             print("Distance to the base:" + str(math.sqrt(self.currentPos[0]**2 + self.currentPos[1]**2)))
             print("Remaining time:" + str(self.rtime))
-            # print("Current position="+str(self.currentPos))
+
             self.returnToBase()
-            # print("Final position="+str(self.currentPos))
-            
             self.resc.go_save_victims(self.walls,self.victims)
             return False
         
@@ -163,6 +168,12 @@ class Explorer(AbstractAgent):
                 self.victims.append(self.currentPos)
             
             self.visited.append(self.currentPos)
+            
+            if(len(self.path) <= 1 and len(self.visited) > 5):
+                self.end()
+                return False
+            elif(len(self.path) !=0 and self.currentPos != self.path[-1]):
+                self.path.append(self.currentPos)
 
         return True
 
