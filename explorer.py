@@ -27,7 +27,7 @@ class Explorer(AbstractAgent):
 
         self.directions = [(0, 1), (1, 0), (0, -1), (-1, 0), (-1, 1), (1, 1), (-1, -1), (1, -1)]
         self.currentPos = (0,0)
-        self.victims = []
+        self.victims = {}
         self.walls = []
         self.visited = [self.currentPos]
         self.path = [self.currentPos]
@@ -41,7 +41,7 @@ class Explorer(AbstractAgent):
     # This method is called to return the best move for the explorer
     def nextMove(self, currentPos):
         
-        # Starting the spiral search from the agent's current position
+        # Starting the exploration based on DFS and backtracking
         while True:
             nodes_to_explore = []
             for i in range(-1, 2):
@@ -127,9 +127,9 @@ class Explorer(AbstractAgent):
             # time to wake up the rescuer
             # pass the walls and the victims (here, they're empty)
             print(f"{self.NAME} I believe I've remaining time of {self.rtime:.1f}")
+            print("Better return to the base")
             print("Max time to come back to base:" + str(self.ttl))
             print("Distance to the base:" + str(math.sqrt(self.currentPos[0]**2 + self.currentPos[1]**2)))
-            print("Remaining time:" + str(self.rtime))
 
             self.returnToBase()
             self.resc.go_save_victims(self.walls,self.victims)
@@ -165,7 +165,7 @@ class Explorer(AbstractAgent):
                 self.rtime -= self.COST_READ
                 # print("exp: read vital signals of " + str(seq))
                 # print(vs)
-                self.victims.append(self.currentPos)
+                self.victims[self.currentPos] = vs
             
             self.visited.append(self.currentPos)
             
