@@ -87,11 +87,21 @@ class Explorer(AbstractAgent):
 
             # Move the agent
             result = self.body.walk(bestMove[0], bestMove[1])
-            print(self.currentPos, bestMove, result)
+            
             if bestMove[0] != 0 and bestMove[1] != 0:
                 self.rtime -= self.COST_DIAG
+                print("Posição atual: ", self.currentPos, 
+                  "Próximo movimento: ", bestMove, 
+                  "result: ", result,
+                  "Posição ao final do movimento:", (self.currentPos[0]+bestMove[0], self.currentPos[1]+bestMove[1]),
+                  "Custo:", 1.5)
             else:
                 self.rtime -= self.COST_LINE
+                print("Posição atual: ", self.currentPos, 
+                  "Próximo movimento: ", bestMove, 
+                  "result: ", result,
+                  "Posição ao final do movimento:", (self.currentPos[0]+bestMove[0], self.currentPos[1]+bestMove[1]),
+                  "Custo:", 1)
 
             self.currentPos = (self.currentPos[0]+bestMove[0], self.currentPos[1]+bestMove[1])
             
