@@ -27,7 +27,7 @@ class Explorer(AbstractAgent):
 
         self.directions = [(0, 1), (1, 0), (0, -1), (-1, 0), (-1, 1), (1, 1), (-1, -1), (1, -1)]
         self.currentPos = (0,0)
-        self.victims = {}
+        self.victims = []
         self.walls = []
         self.visited = [self.currentPos]
         self.path = [self.currentPos]
@@ -165,7 +165,8 @@ class Explorer(AbstractAgent):
                 self.rtime -= self.COST_READ
                 # print("exp: read vital signals of " + str(seq))
                 # print(vs)
-                self.victims[self.currentPos] = vs
+                if (self.currentPos,vs[7]) not in self.victims:
+                    self.victims.append((self.currentPos, vs[7]))
             
             self.visited.append(self.currentPos)
             
